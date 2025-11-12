@@ -1,0 +1,63 @@
+# Railway Ignore File
+# Files and directories to exclude from Railway deployments
+
+# Development files
+.git
+.github
+.vscode
+.idea
+*.log
+*.md
+
+# Keep essential docs
+!README.md
+!TEMPLATE.md
+!RAILWAY_DEPLOYMENT.md
+
+# Node modules (will be reinstalled)
+node_modules
+
+# Test files
+test
+tests
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+coverage
+
+# Build artifacts (will be rebuilt)
+dist
+build
+.next
+out
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp
+temp
+*.tmp
+*.temp
+
+# Documentation
+docs
+CHANGELOG.md
+CONTRIBUTING.md
+
+# CI/CD
+.github/workflows
+
+# Yarn
+yarn.lock
+.yarn
+
+# Keep package-lock for reproducible builds
+# Keep npm lock file for Railway

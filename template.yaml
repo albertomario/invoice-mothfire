@@ -1,0 +1,151 @@
+---
+# Railway Template Configuration
+# This file defines the structure for deploying this template on Railway
+
+name: Node.js Backend with BullMQ
+description: Production-ready Node.js backend with BullMQ queue system, Bull Board dashboard, and Fastify web framework
+repository: railwayapp-templates/fastify-bullmq
+keywords:
+  - nodejs
+  - typescript
+  - fastify
+  - bullmq
+  - redis
+  - queue
+  - background-jobs
+  - dashboard
+
+# Services to be deployed
+services:
+  - name: app
+    type: web
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthcheckPath: /
+    healthcheckTimeout: 10
+    restartPolicyType: ON_FAILURE
+    restartPolicyMaxRetries: 10
+    env:
+      PORT:
+        description: Application port
+        default: "3000"
+      NODE_ENV:
+        description: Node environment
+        default: production
+      REDISHOST:
+        description: Redis hostname (automatically set by Railway)
+        reference: redis.RAILWAY_PRIVATE_DOMAIN
+      REDISPORT:
+        description: Redis port
+        reference: redis.PORT
+        default: "6379"
+      REDISUSER:
+        description: Redis username
+        default: default
+      REDISPASSWORD:
+        description: Redis password (automatically set by Railway)
+        reference: redis.REDIS_PASSWORD
+      RAILWAY_STATIC_URL:
+        description: Public URL for the application
+        reference: app.RAILWAY_PUBLIC_DOMAIN
+        
+  - name: redis
+    type: database
+    image: redis:7-alpine
+    env:
+      REDIS_PASSWORD:
+        description: Redis password
+        generateValue: true
+    volumes:
+      - mountPath: /data
+        name: redis-data
+
+# Documentation
+documentation:
+  readme: |
+    # Node.js Backend with BullMQ
+    
+    This template deploys a production-ready Node.js backend with:
+    - Fastify v5 web framework
+    - BullMQ v5 queue system
+    - Bull Board v6 monitoring dashboard
+    - Redis for queue backend
+    
+    ## Quick Start
+    
+    1. Click "Deploy" to provision the services
+    2. Wait for deployment to complete
+    3. Access your application at the generated URL
+    4. View the Bull Board dashboard at: `https://your-app.railway.app/`
+    5. Add test job: `curl "https://your-app.railway.app/add-job?id=1&email=test@example.com"`
+    
+    ## Features
+    
+    - ✅ Background job processing
+    - ✅ Visual queue monitoring
+    - ✅ High-performance API
+    - ✅ TypeScript support
+    - ✅ Auto-scaling ready
+    
+    ## Next Steps
+    
+    - Review the code in `src/` directory
+    - Add custom queues and workers in `src/queue.ts`
+    - Add new API endpoints in `src/index.ts`
+    - Check the full documentation in TEMPLATE.md
+    
+  examples:
+    - title: Add a Job
+      description: Add a new job to the queue via API
+      command: |
+        curl "https://your-app.railway.app/add-job?id=1&email=user@example.com"
+    
+    - title: View Dashboard
+      description: Monitor jobs and queues
+      url: https://your-app.railway.app/
+    
+    - title: Extend with Database
+      description: Add PostgreSQL for data persistence
+      steps:
+        - Add a PostgreSQL service in Railway
+        - Install database client (npm install pg or @prisma/client)
+        - Add DATABASE_URL to environment variables
+        - Update src/env.ts with new variable
+
+# Required environment variables
+requiredEnvVars:
+  - PORT
+  - REDISHOST
+  - REDISPORT
+  - REDISUSER
+  - REDISPASSWORD
+  - RAILWAY_STATIC_URL
+
+# Suggested environment variables
+suggestedEnvVars:
+  NODE_ENV: production
+
+# Deployment settings
+settings:
+  minReplicas: 1
+  maxReplicas: 10
+  autoscaling:
+    enabled: true
+    targetCPUUtilization: 80
+    targetMemoryUtilization: 80
+
+# Health check
+healthcheck:
+  path: /
+  intervalSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+# Resource requirements
+resources:
+  limits:
+    cpu: "1000m"
+    memory: "512Mi"
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
