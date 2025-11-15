@@ -2,6 +2,8 @@ import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { FastifyAdapter } from '@bull-board/fastify';
 import fastify, { FastifyRequest, FastifyReply } from 'fastify';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { env } from './env';
 import { createQueue, setupQueueProcessor } from './queue';
 import { AnyJobData } from './types/jobs';
@@ -17,11 +19,64 @@ interface AddJobBody {
   reason?: string;
 }
 
+interface ProviderConfig {
+  id: string;
+  name: string;
+  description: string;
+  abilities: string[];
+  logoPath?: string;
+}
+
+interface ProvidersConfig {
+  providers: ProviderConfig[];
+}
+
+/**
+ * Load providers configuration from JSON file
+ */
+const loadProvidersConfig = (): ProvidersConfig => {
+  const configPath = join(process.cwd(), 'providers.json');
+  const configData = readFileSync(configPath, 'utf-8');
+  return JSON.parse(configData);
+};
+
+/**
+ * Load and encode logo as base64
+ */
+const loadProviderLogo = (logoPath: string): string | null => {
+  try {
+    const fullPath = join(process.cwd(), logoPath);
+    const logoData = readFileSync(fullPath);
+    return `data:image/svg+xml;base64,${logoData.toString('base64')}`;
+  } catch (error) {
+    console.warn(`Failed to load logo: ${logoPath}`, error);
+    return null;
+  }
+};
+
 const run = async () => {
   const invoiceQueue = createQueue('InvoiceNotifierQueue');
   await setupQueueProcessor(invoiceQueue.name);
 
   const server = fastify();
+
+  // API route to list all supported providers
+  server.get('/providers', async (req, reply) => {
+    const config = loadProvidersConfig();
+    
+    const providers = config.providers.map((provider) => ({
+      id: provider.id,
+      name: provider.name,
+      description: provider.description,
+      abilities: provider.abilities,
+      logo: provider.logoPath ? loadProviderLogo(provider.logoPath) : null,
+    }));
+
+    return {
+      providers,
+      count: providers.length,
+    };
+  });
 
   // API route to add jobs - MUST BE BEFORE Bull Board registration
   server.post<{ Body: AddJobBody }>(
@@ -116,6 +171,51 @@ const run = async () => {
     }
   );
 
+  // API route to check job status
+  server.get<{ Params: { jobId: string } }>(
+    '/job/:jobId',
+    {
+      schema: {
+        params: {
+          type: 'object',
+          required: ['jobId'],
+          properties: {
+            jobId: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (req, reply) => {
+      const { jobId } = req.params;
+
+      const job = await invoiceQueue.getJob(jobId);
+
+      if (!job) {
+        return reply.status(404).send({
+          error: 'Job not found',
+          jobId,
+        });
+      }
+
+      const state = await job.getState();
+      const progress = job.progress;
+      const logs = await invoiceQueue.getJobLogs(jobId);
+
+      return {
+        jobId: job.id,
+        jobName: job.name,
+        state,
+        progress,
+        data: job.data,
+        returnvalue: job.returnvalue,
+        failedReason: job.failedReason,
+        processedOn: job.processedOn,
+        finishedOn: job.finishedOn,
+        logs: logs.logs,
+      };
+    }
+  );
+
   // Setup Bull Board AFTER routes
   const serverAdapter = new FastifyAdapter();
   serverAdapter.setBasePath('/');
@@ -136,6 +236,9 @@ const run = async () => {
   console.log(`Bull Board UI: http://0.0.0.0:${env.PORT}`);
   console.log('\nExample API calls:');
   console.log(`
+# List all supported providers
+curl http://localhost:${env.PORT}/providers
+
 # Fetch account data
 curl -X POST http://localhost:${env.PORT}/add-job \\
   -H "Content-Type: application/json" \\
@@ -155,6 +258,9 @@ curl -X POST http://localhost:${env.PORT}/add-job \\
 curl -X POST http://localhost:${env.PORT}/add-job \\
   -H "Content-Type: application/json" \\
   -d '{"type":"reject-invoice","provider":"eon","accountContract":"002202348574","invoiceNumber":"011895623139","reason":"Incorrect billing"}'
+
+# Check job status (replace JOB_ID with the ID returned from add-job)
+curl http://localhost:${env.PORT}/job/JOB_ID
   `);
 };
 

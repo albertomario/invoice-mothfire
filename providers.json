@@ -1,0 +1,16 @@
+{
+  "providers": [
+    {
+      "id": "eon",
+      "name": "E.ON",
+      "description": "E.ON energy provider for electricity and gas services",
+      "abilities": [
+        "fetch-account-data",
+        "fetch-invoice",
+        "pay-invoice",
+        "reject-invoice"
+      ],
+      "logoPath": "assets/providers/eon/logo.svg"
+    }
+  ]
+}

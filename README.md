@@ -51,11 +51,21 @@ A work-in-progress queue worker for managing utility invoices across providers. 
 
 ## 📡 Usage
 
+**List supported providers:**
+```bash
+curl http://localhost:3000/providers
+```
+
 **Fetch account balance:**
 ```bash
 curl -X POST http://localhost:3000/add-job \
   -H "Content-Type: application/json" \
   -d '{"type":"fetch-account-data","provider":"eon","accountContract":"002202348574"}'
+```
+
+**Check job status:**
+```bash
+curl http://localhost:3000/job/JOB_ID
 ```
 
 **List invoices:**
