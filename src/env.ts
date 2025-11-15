@@ -11,6 +11,18 @@ export const env = envsafe({
   RAILWAY_STATIC_URL: str({
     devDefault: 'http://localhost:3000',
   }),
+  // Authentication Configuration
+  API_TOKEN: str({
+    desc: 'API token for endpoint authentication',
+  }),
+  ADMIN_USERNAME: str({
+    desc: 'Username for Bull Board admin UI',
+    devDefault: 'admin',
+  }),
+  ADMIN_PASSWORD: str({
+    desc: 'Password for Bull Board admin UI',
+    devDefault: 'admin',
+  }),
   // EON Provider Configuration
   EON_API_BASE_URL: url({
     devDefault: 'https://api2.eon.ro',

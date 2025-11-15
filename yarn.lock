@@ -1022,6 +1022,22 @@
     ajv-formats "^3.0.1"
     fast-uri "^3.0.0"
 
+"@fastify/basic-auth@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.npmjs.org/@fastify/basic-auth/-/basic-auth-6.2.0.tgz"
+  integrity sha512-Ao9Jf8TyW8v7p3CPy++c+E3qcCDeWfAlSIfFo0CsKrfvm81i0OCpnobIMwaSSkg/At0rzsLzbJPDWrgNru0G1w==
+  dependencies:
+    "@fastify/error" "^4.0.0"
+    fastify-plugin "^5.0.0"
+
+"@fastify/cors@^11.1.0":
+  version "11.1.0"
+  resolved "https://registry.npmjs.org/@fastify/cors/-/cors-11.1.0.tgz"
+  integrity sha512-sUw8ed8wP2SouWZTIbA7V2OQtMNpLj2W6qJOYhNdcmINTu6gsxVYXjQiM9mdi8UUDlcoDDJ/W2syPo1WB2QjYA==
+  dependencies:
+    fastify-plugin "^5.0.0"
+    toad-cache "^3.7.0"
+
 "@fastify/error@^4.0.0":
   version "4.2.0"
   resolved "https://registry.npmjs.org/@fastify/error/-/error-4.2.0.tgz"

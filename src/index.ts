@@ -2,6 +2,8 @@ import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 import { FastifyAdapter } from '@bull-board/fastify';
 import fastify, { FastifyRequest, FastifyReply } from 'fastify';
+import cors from '@fastify/cors';
+import basicAuth from '@fastify/basic-auth';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { env } from './env';
@@ -60,8 +62,36 @@ const run = async () => {
 
   const server = fastify();
 
+  // Register CORS plugin
+  await server.register(cors, {
+    origin: true, // Allow all origins, or specify specific origins
+    credentials: true,
+  });
+
+  // Register basic auth plugin for Bull Board
+  await server.register(basicAuth, {
+    validate: async (username: string, password: string) => {
+      if (username !== env.ADMIN_USERNAME || password !== env.ADMIN_PASSWORD) {
+        return new Error('Invalid username or password');
+      }
+    },
+    authenticate: { realm: 'Bull Board Admin' },
+  });
+
+  // Authentication hook for API endpoints
+  const authenticateToken = async (request: FastifyRequest, reply: FastifyReply) => {
+    const token = request.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token || token !== env.API_TOKEN) {
+      return reply.status(401).send({
+        error: 'Unauthorized',
+        message: 'Invalid or missing API token',
+      });
+    }
+  };
+
   // API route to list all supported providers
-  server.get('/providers', async (req, reply) => {
+  server.get('/providers', { preHandler: authenticateToken }, async (req, reply) => {
     const config = loadProvidersConfig();
     
     const providers = config.providers.map((provider) => ({
@@ -82,6 +112,7 @@ const run = async () => {
   server.post<{ Body: AddJobBody }>(
     '/add-job',
     {
+      preHandler: authenticateToken,
       schema: {
         body: {
           type: 'object',
@@ -175,6 +206,7 @@ const run = async () => {
   server.get<{ Params: { jobId: string } }>(
     '/job/:jobId',
     {
+      preHandler: authenticateToken,
       schema: {
         params: {
           type: 'object',
@@ -218,49 +250,63 @@ const run = async () => {
 
   // Setup Bull Board AFTER routes
   const serverAdapter = new FastifyAdapter();
-  serverAdapter.setBasePath('/');
+  serverAdapter.setBasePath('/ui');
   
   createBullBoard({
     queues: [new BullMQAdapter(invoiceQueue)],
     serverAdapter,
   });
 
-  // Register Bull Board plugin
-  server.register(serverAdapter.registerPlugin(), {
-    prefix: '/',
-  });
+  // Register Bull Board plugin with basic auth
+  await server.register(
+    async (instance) => {
+      instance.addHook('onRequest', instance.basicAuth);
+      await instance.register(serverAdapter.registerPlugin(), {
+        prefix: '/ui',
+      });
+    }
+  );
 
   await server.listen({ port: env.PORT, host: '0.0.0.0' });
   
   console.log(`Server running on http://0.0.0.0:${env.PORT}`);
-  console.log(`Bull Board UI: http://0.0.0.0:${env.PORT}`);
-  console.log('\nExample API calls:');
+  console.log(`Bull Board UI: http://0.0.0.0:${env.PORT}/ui (Basic Auth: ${env.ADMIN_USERNAME})`);
+  console.log('\nAuthentication:');
+  console.log(`  - API Token: Use "Authorization: Bearer YOUR_TOKEN" header`);
+  console.log(`  - Bull Board: Basic Auth (username: ${env.ADMIN_USERNAME})`);
+  console.log('\nExample API calls (replace YOUR_TOKEN with your API_TOKEN):');
   console.log(`
 # List all supported providers
-curl http://localhost:${env.PORT}/providers
+curl http://localhost:${env.PORT}/providers \\
+  -H "Authorization: Bearer YOUR_TOKEN"
 
 # Fetch account data
 curl -X POST http://localhost:${env.PORT}/add-job \\
   -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
   -d '{"type":"fetch-account-data","provider":"eon","accountContract":"002202348574"}'
 
 # Fetch unpaid invoices
 curl -X POST http://localhost:${env.PORT}/add-job \\
   -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
   -d '{"type":"fetch-invoice","provider":"eon","accountContract":"002202348574","status":"unpaid"}'
 
 # Pay invoice
 curl -X POST http://localhost:${env.PORT}/add-job \\
   -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
   -d '{"type":"pay-invoice","provider":"eon","accountContract":"002202348574","invoiceNumber":"011895623139","amount":317.79}'
 
 # Reject invoice
 curl -X POST http://localhost:${env.PORT}/add-job \\
   -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_TOKEN" \\
   -d '{"type":"reject-invoice","provider":"eon","accountContract":"002202348574","invoiceNumber":"011895623139","reason":"Incorrect billing"}'
 
 # Check job status (replace JOB_ID with the ID returned from add-job)
-curl http://localhost:${env.PORT}/job/JOB_ID
+curl http://localhost:${env.PORT}/job/JOB_ID \\
+  -H "Authorization: Bearer YOUR_TOKEN"
   `);
 };
 

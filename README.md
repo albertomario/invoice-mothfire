@@ -47,31 +47,47 @@ A work-in-progress queue worker for managing utility invoices across providers. 
    npm run build && npm run dev
    ```
 
-5. **Monitor**: http://localhost:3000
+5. **Monitor**: http://localhost:3000/ui (Basic Auth)
+
+## 🔐 Security
+
+All API endpoints require Bearer token authentication:
+- Set `API_TOKEN` environment variable
+- Add header: `Authorization: Bearer YOUR_TOKEN`
+
+Bull Board UI requires Basic Authentication:
+- Set `ADMIN_USERNAME` and `ADMIN_PASSWORD` environment variables
+- Access at `/ui` path
+
+CORS is enabled for all origins.
 
 ## 📡 Usage
 
 **List supported providers:**
 ```bash
-curl http://localhost:3000/providers
+curl http://localhost:3000/providers \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 **Fetch account balance:**
 ```bash
 curl -X POST http://localhost:3000/add-job \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"type":"fetch-account-data","provider":"eon","accountContract":"002202348574"}'
 ```
 
 **Check job status:**
 ```bash
-curl http://localhost:3000/job/JOB_ID
+curl http://localhost:3000/job/JOB_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
 **List invoices:**
 ```bash
 curl -X POST http://localhost:3000/add-job \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
   -d '{"type":"fetch-invoice","provider":"eon","accountContract":"002202348574","status":"unpaid"}'
 ```
 
