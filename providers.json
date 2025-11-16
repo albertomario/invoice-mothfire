@@ -11,6 +11,16 @@
         "reject-invoice"
       ],
       "logoPath": "assets/providers/eon/logo.svg"
+    },
+    {
+      "id": "nova-apa-serv",
+      "name": "Nova Apaserv Botosani",
+      "description": "Nova Apaserv water and sewage services provider for Botosani",
+      "abilities": [
+        "fetch-account-data",
+        "fetch-invoice"
+      ],
+      "logoPath": "assets/providers/nova-apa-serv/logo.png"
     }
   ]
 }

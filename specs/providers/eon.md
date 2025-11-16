@@ -16,7 +16,7 @@ curl 'https://api2.eon.ro/users/v1/userauth/login' \
   -H 'Sec-Fetch-Mode: cors' \
   -H 'Sec-Fetch-Site: same-site' \
   -H 'Priority: u=0' \
-  --data-raw '{"username":"alberto.burlacu93@gmail.com","password":"Specials1967","rememberMe":false}'
+  --data-raw '{"username":"account@example.com","password":"secure-password","rememberMe":false}'
 
 Response:
 {"accessToken":"9ede5a93-26ae-442f-8cc8-3da2f7d1769c","tokenType":"bearer","expiresIn":1799,"uuid":"aae96ee6-2194-4a49-860e-4a9ae98fce59","legacyId":"264403","scope":"*"}

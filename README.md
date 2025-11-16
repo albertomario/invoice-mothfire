@@ -18,11 +18,14 @@ A work-in-progress queue worker for managing utility invoices across providers. 
 
 ## 🎯 Available Jobs
 
-| Job Type | EON | Enel | Electrica | Digi |
-|----------|-----|------|-----------|------|
-| `fetch-account-data` | ✅ | 🚧 | 🚧 | 🚧 |
-| `fetch-invoice` | ✅ | 🚧 | 🚧 | 🚧 |
-| `pay-invoice` | 🚧 | 🚧 | 🚧 | 🚧 |
+| Job Type | EON | Nova Apa Serv | Enel | Electrica | Digi |
+|----------|-----|---------------|------|-----------|------|
+| `fetch-account-data` | ✅ | ✅ | 🚧 | 🚧 | 🚧 |
+| `fetch-invoice` | ✅ | ✅ | 🚧 | 🚧 | 🚧 |
+| `pay-invoice` | 🚧 | ❌ | 🚧 | 🚧 | 🚧 |
+| `reject-invoice` | 🚧 | ❌ | 🚧 | 🚧 | 🚧 |
+
+_Note: ❌ indicates the provider API does not support this functionality_
 
 ## 🚀 Quick Start
 

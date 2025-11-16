@@ -1,5 +1,6 @@
 import { IProvider, ProviderConfig } from '../types/provider';
 import { EONProvider } from './eon';
+import { NovaApaServProvider } from './nova-apa-serv';
 import { env } from '../env';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -81,6 +82,15 @@ export class ProviderFactory {
           apiKey: env.EON_API_KEY,
           username: env.EON_USERNAME,
           password: env.EON_PASSWORD,
+        });
+        break;
+
+      case 'nova-apa-serv':
+        provider = new NovaApaServProvider({
+          apiBaseUrl: env.NOVA_APA_SERV_API_BASE_URL,
+          apiKey: '',
+          username: env.NOVA_APA_SERV_USERNAME,
+          password: env.NOVA_APA_SERV_PASSWORD,
         });
         break;
 

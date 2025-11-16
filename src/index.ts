@@ -49,7 +49,17 @@ const loadProviderLogo = (logoPath: string): string | null => {
   try {
     const fullPath = join(process.cwd(), logoPath);
     const logoData = readFileSync(fullPath);
-    return `data:image/svg+xml;base64,${logoData.toString('base64')}`;
+    
+    // Determine MIME type based on file extension
+    const mimeType = logoPath.endsWith('.svg') 
+      ? 'image/svg+xml' 
+      : logoPath.endsWith('.png') 
+      ? 'image/png'
+      : logoPath.endsWith('.jpg') || logoPath.endsWith('.jpeg')
+      ? 'image/jpeg'
+      : 'image/svg+xml'; // default fallback
+    
+    return `data:${mimeType};base64,${logoData.toString('base64')}`;
   } catch (error) {
     console.warn(`Failed to load logo: ${logoPath}`, error);
     return null;

@@ -32,4 +32,14 @@ export const env = envsafe({
   }),
   EON_USERNAME: str(),
   EON_PASSWORD: str(),
+  // Nova Apa Serv Provider Configuration
+  NOVA_APA_SERV_API_BASE_URL: url({
+    devDefault: 'https://www.apabotosani.ro',
+  }),
+  NOVA_APA_SERV_USERNAME: str({
+    devDefault: '',
+  }),
+  NOVA_APA_SERV_PASSWORD: str({
+    devDefault: '',
+  }),
 });
